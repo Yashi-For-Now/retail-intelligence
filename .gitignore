@@ -1,0 +1,7 @@
+venv/
+.env
+data/raw/
+__pycache__/
+*.pyc
+*.egg-info/
+.great_expectations/uncommitted/
