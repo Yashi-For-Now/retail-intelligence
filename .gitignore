@@ -1,7 +1,9 @@
 venv/
 .env
 data/raw/
+data/processed/
 __pycache__/
 *.pyc
 *.egg-info/
-.great_expectations/uncommitted/
+.great_expectations/
+gx/
