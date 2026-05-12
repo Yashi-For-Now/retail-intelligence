@@ -1,0 +1,21 @@
+retail-intelligence/
+│
+├── data/
+│   ├── raw/              ← downloaded CSV goes here
+│   └── processed/        ← PySpark output goes here
+│
+├── dags/                 ← Airflow DAGs (Phase 7)
+│
+├── tests/                ← pytest test files
+│
+├── notebooks/            ← any exploratory work
+│
+├── venv/                 ← created by python -m venv (auto)
+│
+├── .env                  ← DB credentials (create manually)
+├── .gitignore            ← (create manually)
+├── ingest.py             ← Phase 2 (we write this next)
+├── transform.py          ← Phase 3
+├── validate.py           ← Phase 4
+├── load.py               ← Phase 5
+└── requirements.txt      ← we'll generate this at the end
