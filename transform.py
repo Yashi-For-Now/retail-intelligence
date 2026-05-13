@@ -83,7 +83,7 @@ def filter_bad_data(df):
     df = (
         df.filter(~F.col("Invoice").startswith("C"))  # cancellations
         .filter(F.col("Quantity") > 0)  # negative or zero quantities
-        .filter(F.col("Price") > 0)  # negative or zero prices
+        .filter(F.col("Price") >= 0.01)  # negative or zero prices
     )
 
     after = df.count()

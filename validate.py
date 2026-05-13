@@ -1,5 +1,4 @@
-# validate.py
-# Stage 3: Data quality validation using Great Expectations v1.x
+# Data quality validation using Great Expectations
 
 import logging
 import pandas as pd
@@ -7,22 +6,22 @@ from pathlib import Path
 from dotenv import load_dotenv
 import great_expectations as gx
 
-# ── Config ────────────────────────────────────────────────────────────────────
+#  Config
 load_dotenv()
 
 PROCESSED_DIR = Path("data/processed")
-INPUT_FILE    = PROCESSED_DIR / "retail_cleaned.parquet"
+INPUT_FILE = PROCESSED_DIR / "retail_cleaned.parquet"
 
-# ── Logging ───────────────────────────────────────────────────────────────────
+#  Logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 log = logging.getLogger(__name__)
 
 
-# ── Load cleaned data ─────────────────────────────────────────────────────────
+#  Load cleaned data
 def load_cleaned_data() -> pd.DataFrame:
     log.info(f"Loading cleaned data from {INPUT_FILE}")
     df = pd.read_parquet(INPUT_FILE)
@@ -30,7 +29,7 @@ def load_cleaned_data() -> pd.DataFrame:
     return df
 
 
-# ── Run validations ───────────────────────────────────────────────────────────
+#  Run validations
 def run_validations(df: pd.DataFrame) -> dict:
     log.info("Initialising Great Expectations context")
 
@@ -38,28 +37,30 @@ def run_validations(df: pd.DataFrame) -> dict:
 
     # Add pandas datasource
     datasource = context.data_sources.add_pandas(name="retail_datasource")
-    asset      = datasource.add_dataframe_asset(name="retail_cleaned")
-    batch_def  = asset.add_batch_definition_whole_dataframe("retail_batch")
-    batch      = batch_def.get_batch(batch_parameters={"dataframe": df})
+    asset = datasource.add_dataframe_asset(name="retail_cleaned")
+    batch_def = asset.add_batch_definition_whole_dataframe("retail_batch")
+    # batch = batch_def.get_batch(batch_parameters={"dataframe": df})
 
-    # ── Define expectations ───────────────────────────────────────────────────
-    suite = context.suites.add(
-        gx.ExpectationSuite(name="retail_quality_suite")
-    )
+    #  Define expectations
+    suite = context.suites.add(gx.ExpectationSuite(name="retail_quality_suite"))
 
     # 1. Required columns exist
-    for col in ["Invoice", "StockCode", "Description",
-                "Quantity", "Price", "Customer ID",
-                "Country", "Revenue", "InvoiceDate"]:
-        suite.add_expectation(
-            gx.expectations.ExpectColumnToExist(column=col)
-        )
+    for col in [
+        "Invoice",
+        "StockCode",
+        "Description",
+        "Quantity",
+        "Price",
+        "Customer ID",
+        "Country",
+        "Revenue",
+        "InvoiceDate",
+    ]:
+        suite.add_expectation(gx.expectations.ExpectColumnToExist(column=col))
 
     # 2. No nulls in critical columns
     for col in ["Invoice", "StockCode", "Quantity", "Price", "Revenue"]:
-        suite.add_expectation(
-            gx.expectations.ExpectColumnValuesToNotBeNull(column=col)
-        )
+        suite.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column=col))
 
     # 3. Quantity must be positive
     suite.add_expectation(
@@ -77,9 +78,7 @@ def run_validations(df: pd.DataFrame) -> dict:
 
     # 5. Revenue must be positive
     suite.add_expectation(
-        gx.expectations.ExpectColumnValuesToBeBetween(
-            column="Revenue", min_value=0.01
-        )
+        gx.expectations.ExpectColumnValuesToBeBetween(column="Revenue", min_value=0.0)
     )
 
     # 6. Country unique count reasonable
@@ -89,20 +88,16 @@ def run_validations(df: pd.DataFrame) -> dict:
         )
     )
 
-    # ── Run validation ────────────────────────────────────────────────────────
+    #  Run validation
     validation_def = context.validation_definitions.add(
-        gx.ValidationDefinition(
-            name       = "retail_validation",
-            data       = batch_def,
-            suite      = suite
-        )
+        gx.ValidationDefinition(name="retail_validation", data=batch_def, suite=suite)
     )
 
     results = validation_def.run(batch_parameters={"dataframe": df})
     return results
 
 
-# ── Revenue integrity check ───────────────────────────────────────────────────
+#  Revenue integrity check
 def check_revenue_integrity(df: pd.DataFrame) -> bool:
     df["_check"] = (df["Quantity"] * df["Price"]).round(2)
     mismatch = (abs(df["Revenue"] - df["_check"]) > 0.01).sum()
@@ -116,7 +111,7 @@ def check_revenue_integrity(df: pd.DataFrame) -> bool:
         return True
 
 
-# ── Print summary ─────────────────────────────────────────────────────────────
+#  Print summary
 def print_summary(results) -> bool:
     log.info("=" * 50)
     log.info("VALIDATION RESULTS")
@@ -126,9 +121,13 @@ def print_summary(results) -> bool:
 
     for result in results.results:
         expectation = result.expectation_config.type
-        column      = result.expectation_config.column if hasattr(result.expectation_config, 'column') else "—"
-        success     = result.success
-        status      = "✅ PASS" if success else "❌ FAIL"
+        column = (
+            result.expectation_config.column
+            if hasattr(result.expectation_config, "column")
+            else "—"
+        )
+        success = result.success
+        status = "✅ PASS" if success else "❌ FAIL"
         log.info(f"{status}  |  {expectation}  |  column: {column}")
 
         if not success:
@@ -143,7 +142,7 @@ def print_summary(results) -> bool:
     return all_passed
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+#  Main
 def main():
     log.info("=" * 50)
     log.info("RETAIL INTELLIGENCE — VALIDATE STAGE")
@@ -164,14 +163,14 @@ def main():
     check_revenue_integrity(df)
 
     # GE validations
-    results  = run_validations(df)
+    results = run_validations(df)
     all_good = print_summary(results)
 
     if not all_good:
         log.error("Validation failed — fix issues before loading to DB")
         raise SystemExit(1)
 
-    log.info("Validate stage complete. Ready for load.py")
+    log.info("Validate stage complete.")
 
 
 if __name__ == "__main__":

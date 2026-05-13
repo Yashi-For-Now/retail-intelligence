@@ -9,7 +9,7 @@ from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 import os
 
-# ── Config ────────────────────────────────────────────────────────────────────
+#  Config
 load_dotenv()
 
 PROCESSED_DIR = Path("data/processed")
@@ -23,7 +23,7 @@ DB_PASS = os.getenv("DB_PASSWORD", "postgres")
 
 DB_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-#  Logging 
+#  Logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -32,7 +32,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-#  DB Connection 
+#  DB Connection
 def get_engine():
     log.info(f"Connecting to PostgreSQL at {DB_HOST}:{DB_PORT}/{DB_NAME}")
     engine = create_engine(DB_URL)
@@ -43,7 +43,7 @@ def get_engine():
     return engine
 
 
-#  Create Schema 
+#  Create Schema
 def create_schema(engine):
     """
     Creates the star schema DDL.
@@ -326,7 +326,7 @@ def main():
     # 6. Verify
     verify_load(engine)
 
-    log.info("Load stage complete. Ready for dashboard.")
+    log.info("Load stage complete.")
 
 
 if __name__ == "__main__":
