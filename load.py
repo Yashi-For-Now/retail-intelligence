@@ -18,8 +18,11 @@ INPUT_FILE = PROCESSED_DIR / "retail_cleaned.parquet"
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "5432")
 DB_NAME = os.getenv("DB_NAME", "retail_db")
-DB_USER = os.getenv("DB_USER", "postgres")
-DB_PASS = os.getenv("DB_PASSWORD", "postgres")
+DB_USER = os.getenv("DB_USER")
+DB_PASS = os.getenv("DB_PASSWORD")
+
+if not DB_USER or not DB_PASS:
+    raise ValueError("DB_USER and DB_PASSWORD must be set in .env file")
 
 DB_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
