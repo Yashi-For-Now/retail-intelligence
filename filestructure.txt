@@ -18,4 +18,4 @@ retail-intelligence/
 ├── transform.py          ← Phase 3
 ├── validate.py           ← Phase 4
 ├── load.py               ← Phase 5
-└── requirements.txt      ← we'll generate this at the end
+└── requirements.txt      
